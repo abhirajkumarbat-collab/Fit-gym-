@@ -18,14 +18,19 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Extract ZIP and Build APK
+      - name: Extract ZIP, Generate Keystore and Build APK
         run: |
           unzip fit3d.zip -d my_app
           cd my_app
+          
+          echo "Generating missing debug.keystore..."
+          keytool -genkey -v -keystore app/debug.keystore -alias androiddebugkey -keypass android -storepass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          
           echo "Downloading Gradle 9.3.1..."
           wget -q https://services.gradle.org/distributions/gradle-9.3.1-bin.zip
           unzip -q gradle-9.3.1-bin.zip
           export PATH=$PWD/gradle-9.3.1/bin:$PATH
+          
           echo "Building APK..."
           gradle assembleDebug
 
