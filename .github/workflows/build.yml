@@ -12,20 +12,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
 
-      - name: Update Gradle Wrapper and Build APK
+      - name: Extract ZIP and Build APK
         run: |
           unzip fit3d.zip -d my_app
           cd my_app
-          # Upgrade gradle wrapper to version 7.5 for Java 11 compatibility
-          ./gradlew wrapper --gradle-version 7.5
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          echo "Downloading Gradle..."
+          wget -q https://services.gradle.org/distributions/gradle-8.5-bin.zip
+          unzip -q gradle-8.5-bin.zip
+          export PATH=$PWD/gradle-8.5/bin:$PATH
+          echo "Building APK..."
+          gradle assembleDebug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
