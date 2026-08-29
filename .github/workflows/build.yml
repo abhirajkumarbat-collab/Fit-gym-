@@ -3,6 +3,7 @@ name: Build FIT3D APK
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -18,24 +19,37 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Extract ZIP, Generate Keystore and Build APK
+      - name: Prepare Project and Bulletproof Keystores
         run: |
           unzip fit3d.zip -d my_app
           cd my_app
           
-          echo "Generating missing debug.keystore..."
+          # Fix 1: Generate keystore exactly where error requested
+          echo "Generating debug.keystore in root folder..."
+          keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -keypass android -storepass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          
+          # Fix 2: Generate keystore in app folder too (Double Safety)
+          mkdir -p app
           keytool -genkey -v -keystore app/debug.keystore -alias androiddebugkey -keypass android -storepass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           
-          echo "Downloading Gradle 9.3.1..."
+          # Fix 3: Explicitly define Android SDK directory
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+      - name: Download Gradle 9.3.1
+        run: |
+          cd my_app
           wget -q https://services.gradle.org/distributions/gradle-9.3.1-bin.zip
           unzip -q gradle-9.3.1-bin.zip
-          export PATH=$PWD/gradle-9.3.1/bin:$PATH
           
-          echo "Building APK..."
+      - name: Build APK (Final)
+        run: |
+          cd my_app
+          export PATH=$PWD/gradle-9.3.1/bin:$PATH
           gradle assembleDebug
 
-      - name: Upload APK Artifact
+      - name: Upload APK Artifact (Auto-Find)
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk
-          path: my_app/app/build/outputs/apk/debug/app-debug.apk
+          name: FIT3D-App-APK
+          # Fix 4: Find any APK file anywhere in the project automatically
+          path: my_app/**/*.apk
