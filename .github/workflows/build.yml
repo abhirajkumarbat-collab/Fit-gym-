@@ -22,10 +22,10 @@ jobs:
         run: |
           unzip fit3d.zip -d my_app
           cd my_app
-          echo "Downloading Gradle..."
-          wget -q https://services.gradle.org/distributions/gradle-8.5-bin.zip
-          unzip -q gradle-8.5-bin.zip
-          export PATH=$PWD/gradle-8.5/bin:$PATH
+          echo "Downloading Gradle 9.3.1..."
+          wget -q https://services.gradle.org/distributions/gradle-9.3.1-bin.zip
+          unzip -q gradle-9.3.1-bin.zip
+          export PATH=$PWD/gradle-9.3.1/bin:$PATH
           echo "Building APK..."
           gradle assembleDebug
 
